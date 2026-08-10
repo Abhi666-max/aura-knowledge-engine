@@ -1,0 +1,112 @@
+import os
+from typing import List, TypedDict
+
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_groq import ChatGroq
+from langgraph.graph import END, StateGraph
+from pydantic import BaseModel, Field
+
+
+class AgentState(TypedDict):
+    input_text: str
+    nodes: list
+    edges: list
+    response: str
+
+
+llm = ChatGroq(
+    temperature=0, model_name="llama-3.1-8b-instant", api_key=os.getenv("GROQ_API_KEY")
+)
+
+
+class NodeModel(BaseModel):
+    id: str = Field(
+        description="Unique identifier for the entity, lowercase with underscores"
+    )
+    label: str = Field(description="Display name of the entity")
+    group: str = Field(
+        description="1 for People, 2 for Companies, 3 for Concepts. (Output as a string digit)"
+    )
+
+
+class EdgeModel(BaseModel):
+    source: str = Field(description="ID of the source node")
+    target: str = Field(description="ID of the target node")
+    label: str = Field(
+        description="Relationship describing how source connects to target"
+    )
+
+
+class GraphExtraction(BaseModel):
+    nodes: List[NodeModel] = Field(default_factory=list)
+    edges: List[EdgeModel] = Field(default_factory=list)
+    response: str = Field(
+        description="A natural, conversational response answering the user's query."
+    )
+
+
+def extract_knowledge(state: AgentState):
+    """Extracts entities and relationships from the text."""
+    input_text = state["input_text"]
+
+    prompt = SystemMessage(
+        content="""You are Aura, an advanced AI Assistant and Knowledge Graph Extractor.
+First, answer the user's question fully and conversationally in the "response" field.
+Then, extract the relevant entities ("nodes") and their relationships ("edges").
+Make IDs lowercase with underscores.
+Do not extract relationships unless both source and target entities are clearly identifiable.
+
+You MUST return exactly ONE JSON object with three keys: "response", "nodes", and "edges".
+"nodes" must be an array of objects with keys: "id", "label", "group".
+"edges" must be an array of objects with keys: "source", "target", "label".
+Output ONLY valid JSON. No markdown formatting, no code blocks."""
+    )
+
+    # Use JSON mode instead of structured tool calling to prevent 400 Bad Request errors
+    json_llm = llm.bind(response_format={"type": "json_object"})
+
+    try:
+        result = json_llm.invoke([prompt, HumanMessage(content=input_text)])
+
+        import json
+
+        try:
+            parsed = json.loads(result.content)
+        except json.JSONDecodeError:
+            # Fallback if it wrapped in markdown
+            content = result.content.strip()
+            if content.startswith("```json"):
+                content = content[7:]
+            if content.endswith("```"):
+                content = content[:-3]
+            parsed = json.loads(content.strip())
+
+        def parse_array(val):
+            if isinstance(val, str):
+                try:
+                    return json.loads(val)
+                except json.JSONDecodeError:
+                    return []
+            return val if isinstance(val, list) else []
+
+        nodes_out = parse_array(parsed.get("nodes"))
+        edges_out = parse_array(parsed.get("edges"))
+        resp_out = parsed.get("response", "Processing complete.")
+
+        return {"nodes": nodes_out, "edges": edges_out, "response": resp_out}
+
+    except Exception as e:
+        print("Failed to parse AI output:", e)
+        return {
+            "nodes": [],
+            "edges": [],
+            "response": f"Error extracting graph data: {str(e)}",
+        }
+
+
+graph = StateGraph(AgentState)
+graph.add_node("extract", extract_knowledge)
+graph.set_entry_point("extract")
+graph.add_edge("extract", END)
+
+app = graph.compile()
