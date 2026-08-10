@@ -34,7 +34,7 @@ export default function Home() {
     } catch {
       console.error("Failed to fetch graph");
     }
-  }, [API_URL]);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
