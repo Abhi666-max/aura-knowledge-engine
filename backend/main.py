@@ -7,12 +7,14 @@ from sqlalchemy.future import select
 from agent import app as agent_app
 from database import Base, engine, get_db
 from models import Edge, Node
-from sentence_transformers import SentenceTransformer
+import hashlib
 
 app = FastAPI(title="Nexus Knowledge Graph API", version="1.0.0")
 
-# Load embedding model for Vector DB semantic search
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+# Vector DB embedding mock generator (to save EC2 disk space)
+def generate_mock_embedding(text: str, dim: int = 384):
+    h = hashlib.sha256(text.encode()).digest()
+    return [(float(b) / 255.0) for b in h] + [0.5] * (dim - 32)
 
 app.add_middleware(
     CORSMiddleware,
@@ -82,7 +84,7 @@ async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db))
 
             # Generate vector embedding for semantic search
             try:
-                emb = embedding_model.encode(label).tolist()
+                emb = generate_mock_embedding(label)
             except Exception:
                 emb = None
 
