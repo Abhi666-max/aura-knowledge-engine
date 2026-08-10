@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from agent import app as agent_app
 from database import Base, engine, get_db

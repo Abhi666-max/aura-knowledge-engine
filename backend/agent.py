@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from typing import List, TypedDict
 
 from langchain_core.messages import HumanMessage, SystemMessage
