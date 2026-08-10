@@ -20,10 +20,9 @@ jmespath==1.1.0
 jsonpatch==1.33
 jsonpointer==3.1.1
 langgraph==0.1.13
-groq==0.9.0
 langchain-groq==0.1.6
 pgvector==0.3.1
-sentence-transformers==3.0.13
+sentence-transformers==3.0.1
 langchain-protocol==0.0.18
 langgraph==1.2.10
 langgraph-checkpoint==4.2.0
