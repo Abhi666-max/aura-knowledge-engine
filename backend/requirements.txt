@@ -19,7 +19,6 @@ idna==3.18
 jmespath==1.1.0
 jsonpatch==1.33
 jsonpointer==3.1.1
-langgraph==0.1.13
 langchain-groq==0.1.6
 pgvector==0.3.1
 sentence-transformers==3.0.1

@@ -24,7 +24,7 @@ export default function Home() {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const API_URL = "http://32.196.225.218:8000";
 
   const fetchGraph = useCallback(async () => {
     try {
@@ -57,7 +57,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/chat`, {
+      const res = await fetch("http://32.196.225.218:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userText })
@@ -81,7 +81,7 @@ export default function Home() {
   const handleReset = async () => {
     setIsResetting(true);
     try {
-      const res = await fetch(`${API_URL}/api/reset`, { method: "POST" });
+      const res = await fetch("http://32.196.225.218:8000/api/reset", { method: "POST" });
       if (res.ok) {
         setGraphData({ nodes: [], links: [] });
         setMessages(prev => [...prev, { role: "system", content: "System: Knowledge Graph has been safely wiped. Backup created." }]);
