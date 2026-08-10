@@ -15,19 +15,19 @@
 
 ---
 
-## 🌟 Overview
+## Overview
 Aura Knowledge Engine is a full-stack, distributed cloud application that transforms raw, unstructured text into visually interactive 3D Knowledge Graphs. By leveraging state-of-the-art Large Language Models (LLMs), Aura dynamically extracts entities and relationships, storing them securely in a highly available CockroachDB Serverless cluster.
 
 This project demonstrates a robust modern Cloud Computing Architecture, seamlessly distributing workloads across Edge Networks (Vercel) and Cloud Virtual Machines (AWS EC2).
 
-## 🚀 Key Features
+## Key Features
 - **AI-Powered Graph Extraction**: Powered by `llama-3.1-8b-instant` via LangChain to extract entities (Nodes) and relationships (Edges) with high precision.
 - **CockroachDB Persistent Storage**: Utilizing CockroachDB's distributed SQL for ultra-low latency reads/writes, ensuring data integrity and horizontal scalability.
 - **Vector Embeddings (pgvector)**: Storing semantic vector embeddings for nodes in CockroachDB to enable advanced AI-driven similarity search.
 - **AWS EC2 Deployment**: The Python/FastAPI backend is securely deployed on an Amazon Web Services (AWS) EC2 instance, utilizing REST APIs to serve graph data.
 - **Interactive 3D Visualization**: A highly responsive Next.js frontend featuring `react-force-graph-3d` for dynamic, physics-based graph rendering in the browser.
 
-## 🏗️ Architecture & File Structure
+## Architecture & File Structure
 
 ```text
 aura-knowledge-engine/
@@ -51,7 +51,7 @@ aura-knowledge-engine/
 └── README.md                      # Project Documentation
 ```
 
-## 🛠️ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
 - Python 3.10+
@@ -82,14 +82,14 @@ npm run dev
 ```
 Open `http://localhost:3000` to view the application. The frontend automatically proxies requests to the backend server.
 
-## ☁️ Cloud Deployment
+## Cloud Deployment
 1. **Frontend**: The React UI is optimized for Edge deployment and is continuously deployed via **Vercel**. It uses Serverless API routes to proxy requests, securely avoiding Mixed Content errors.
 2. **Backend**: Hosted on an **AWS EC2 Ubuntu Instance**. The FastAPI server runs continuously in the background, with port 8000 exposed via AWS Security Groups.
 3. **Database**: Hosted on **CockroachDB Serverless** using robust PostgreSQL bindings.
 
-## 📜 License
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
-### 👨‍💻 Credits
+### Credits
 Architected and Developed by **Abhijeet Kangane (@Abhi666-max)**.

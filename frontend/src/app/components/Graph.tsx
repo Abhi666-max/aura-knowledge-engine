@@ -6,7 +6,7 @@ import { ZoomIn, ZoomOut } from "lucide-react";
 
 const ForceGraph3D = dynamic(() => import("react-force-graph-3d"), { ssr: false });
 
-export default function Graph({ data }: { data: unknown }) {
+export default function Graph({ data }: { data: any }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fgRef = useRef<any>(null);
 
