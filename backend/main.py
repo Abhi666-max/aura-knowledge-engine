@@ -7,8 +7,12 @@ from sqlalchemy.future import select
 from agent import app as agent_app
 from database import Base, engine, get_db
 from models import Edge, Node
+from sentence_transformers import SentenceTransformer
 
 app = FastAPI(title="Nexus Knowledge Graph API", version="1.0.0")
+
+# Load embedding model for Vector DB semantic search
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 app.add_middleware(
     CORSMiddleware,
@@ -76,8 +80,14 @@ async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db))
                 label = nid.replace("_", " ").title()
                 group = 1
 
+            # Generate vector embedding for semantic search
+            try:
+                emb = embedding_model.encode(label).tolist()
+            except Exception:
+                emb = None
+
             # db.merge guarantees the object is added to the session safely and upserted
-            await db.merge(Node(id=nid, label=label, group=group))
+            await db.merge(Node(id=nid, label=label, group=group, embedding=emb))
 
         # Flush nodes to the database so they are available for Edge foreign key checks
         await db.flush()

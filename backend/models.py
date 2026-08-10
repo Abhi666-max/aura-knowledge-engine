@@ -1,5 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
-
+from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime
+from pgvector.sqlalchemy import Vector
 from database import Base
 
 
@@ -9,6 +9,7 @@ class Node(Base):
     id = Column(String(100), primary_key=True, index=True)
     label = Column(String(255), nullable=False)
     group = Column(Integer, default=1)
+    embedding = Column(Vector(384), nullable=True)
 
 
 class Edge(Base):
@@ -26,6 +27,7 @@ class NodeBackup(Base):
     id = Column(String(100), primary_key=True, index=True)
     label = Column(String(255), nullable=False)
     group = Column(Integer, default=1)
+    embedding = Column(Vector(384), nullable=True)
 
 
 class EdgeBackup(Base):
