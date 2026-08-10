@@ -4,8 +4,6 @@
   # Aura Knowledge Engine
   
   **An autonomous AI agent that builds interactive Knowledge Graphs from unstructured text.**
-  
-  *Built for the CockroachDB x AWS Hackathon & Cloud Computing Mini-Project*
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![CockroachDB](https://img.shields.io/badge/CockroachDB-Serverless-6933FF?logo=cockroachlabs)](https://www.cockroachlabs.com/)
@@ -20,28 +18,29 @@
 ## 🌟 Overview
 Aura Knowledge Engine is a full-stack, distributed cloud application that transforms raw, unstructured text into visually interactive 3D Knowledge Graphs. By leveraging state-of-the-art Large Language Models (LLMs), Aura dynamically extracts entities and relationships, storing them securely in a highly available CockroachDB Serverless cluster.
 
-This project demonstrates a perfect modern Cloud Computing Architecture, distributing workloads across Edge Networks (Vercel) and Cloud Virtual Machines (AWS EC2).
+This project demonstrates a robust modern Cloud Computing Architecture, seamlessly distributing workloads across Edge Networks (Vercel) and Cloud Virtual Machines (AWS EC2).
 
 ## 🚀 Key Features
-- **AI-Powered Graph Extraction**: Powered by `llama-3.1-8b-instant` via LangChain to extract entities (Nodes) and relationships (Edges).
-- **CockroachDB Persistent Storage**: Utilizing CockroachDB's distributed SQL for ultra-low latency reads/writes and horizontal scalability.
-- **pgvector Similarity Search**: (CockroachDB Tool 2) - Storing semantic vector embeddings for nodes to enable advanced AI-driven similarity search.
-- **AWS EC2 Deployment**: The Python/FastAPI backend is securely deployed on an Amazon Web Services (AWS) `t3.micro` EC2 instance.
-- **Interactive 3D Visualization**: A beautiful Next.js frontend featuring `react-force-graph-3d` for dynamic, physics-based graph rendering.
+- **AI-Powered Graph Extraction**: Powered by `llama-3.1-8b-instant` via LangChain to extract entities (Nodes) and relationships (Edges) with high precision.
+- **CockroachDB Persistent Storage**: Utilizing CockroachDB's distributed SQL for ultra-low latency reads/writes, ensuring data integrity and horizontal scalability.
+- **Vector Embeddings (pgvector)**: Storing semantic vector embeddings for nodes in CockroachDB to enable advanced AI-driven similarity search.
+- **AWS EC2 Deployment**: The Python/FastAPI backend is securely deployed on an Amazon Web Services (AWS) EC2 instance, utilizing REST APIs to serve graph data.
+- **Interactive 3D Visualization**: A highly responsive Next.js frontend featuring `react-force-graph-3d` for dynamic, physics-based graph rendering in the browser.
 
 ## 🏗️ Architecture & File Structure
 
 ```text
 aura-knowledge-engine/
-├── backend/                       # Python FastAPI Server (AWS EC2)
+├── backend/                       # Python FastAPI Server (Hosted on AWS EC2)
 │   ├── agent.py                   # LangChain/LangGraph AI extraction logic
 │   ├── database.py                # CockroachDB SQLAlchemy connection setup
 │   ├── models.py                  # Database schema (Nodes, Edges, pgvector)
 │   ├── main.py                    # FastAPI application routes
 │   └── requirements.txt           # Python dependencies
-├── frontend/                      # Next.js React UI (Vercel)
+├── frontend/                      # Next.js React UI (Hosted on Vercel)
 │   ├── public/                    # Assets and Logos
 │   ├── src/app/
+│   │   ├── api/                   # Next.js Serverless Proxy Routes
 │   │   ├── components/
 │   │   │   └── Graph.tsx          # 3D Force Graph Component
 │   │   ├── page.tsx               # Main Dashboard UI
@@ -73,6 +72,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
+Create a `.env` file in the `backend/` directory with your database and API keys.
 
 ### 2. Frontend Setup
 ```bash
@@ -80,16 +80,16 @@ cd frontend
 npm install
 npm run dev
 ```
-Open `http://localhost:3000` to view the application.
+Open `http://localhost:3000` to view the application. The frontend automatically proxies requests to the backend server.
 
-## ☁️ Cloud Deployment (AWS & Vercel)
-1. **Frontend**: Connected to this GitHub repository and continuously deployed via **Vercel**.
-2. **Backend**: Hosted on an **AWS EC2 Ubuntu Instance**. The FastAPI server runs continuously via `systemd` or `pm2`, with port 8000 exposed via AWS Security Groups.
-3. **Database**: Hosted on **CockroachDB Serverless** using PostgreSQL bindings.
+## ☁️ Cloud Deployment
+1. **Frontend**: The React UI is optimized for Edge deployment and is continuously deployed via **Vercel**. It uses Serverless API routes to proxy requests, securely avoiding Mixed Content errors.
+2. **Backend**: Hosted on an **AWS EC2 Ubuntu Instance**. The FastAPI server runs continuously in the background, with port 8000 exposed via AWS Security Groups.
+3. **Database**: Hosted on **CockroachDB Serverless** using robust PostgreSQL bindings.
 
 ## 📜 License
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 ### 👨‍💻 Credits
-Designed and Developed by **Abhijeet Kangane (Abhi666-max)** for the CockroachDB x AWS Hackathon.
+Architected and Developed by **Abhijeet Kangane (@Abhi666-max)**.
