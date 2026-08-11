@@ -19,6 +19,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState<string | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
@@ -238,6 +239,49 @@ export default function Home() {
           )}
         </AnimatePresence>
         
+        {/* Safe Delete Node Modal */}
+        <AnimatePresence>
+          {nodeToDelete && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+            >
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-[#0f0f11] border border-white/10 rounded-xl p-6 shadow-2xl max-w-sm w-full mx-4"
+              >
+                <h2 className="text-lg font-bold text-zinc-100 mb-2">Delete Node?</h2>
+                <p className="text-sm text-zinc-400 mb-6">
+                  Are you sure you want to permanently delete the node <span className="font-mono text-zinc-200">'{nodeToDelete}'</span>? This action cannot be undone.
+                </p>
+                <div className="flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => setNodeToDelete(null)}
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-100 hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const id = nodeToDelete;
+                      setNodeToDelete(null);
+                      await fetch('/api/delete-node', { method: 'POST', body: JSON.stringify({id}) });
+                      fetchGraph();
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors"
+                  >
+                    Yes, Delete
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
         {/* Minimal Graph Stats Overlay */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -302,12 +346,7 @@ export default function Home() {
                             <div className="flex gap-2 items-center">
                               <span className="text-[10px] font-medium text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Grp {node.group || '1'}</span>
                               <button 
-                                onClick={async () => {
-                                  if(confirm(`Delete node ${node.id}?`)) {
-                                    await fetch('/api/delete-node', { method: 'POST', body: JSON.stringify({id: node.id}) });
-                                    fetchGraph();
-                                  }
-                                }}
+                                onClick={() => setNodeToDelete(String(node.id))}
                                 className="text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded transition-colors"
                               >
                                 <Trash2 className="w-3 h-3" />
