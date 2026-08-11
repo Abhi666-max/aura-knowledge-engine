@@ -207,7 +207,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+              className="absolute inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center"
             >
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0 }}
@@ -246,7 +246,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center"
+              className="absolute inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center"
             >
               <motion.div 
                 initial={{ scale: 0.95, opacity: 0 }}
