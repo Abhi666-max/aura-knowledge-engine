@@ -299,7 +299,20 @@ export default function Home() {
                               <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                               <span className="font-semibold text-zinc-200 text-sm">{node.label || node.id}</span>
                             </div>
-                            <span className="text-[10px] font-medium text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Grp {node.group || '1'}</span>
+                            <div className="flex gap-2 items-center">
+                              <span className="text-[10px] font-medium text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Grp {node.group || '1'}</span>
+                              <button 
+                                onClick={async () => {
+                                  if(confirm(`Delete node ${node.id}?`)) {
+                                    await fetch('/api/delete-node', { method: 'POST', body: JSON.stringify({id: node.id}) });
+                                    fetchGraph();
+                                  }
+                                }}
+                                className="text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
                           </div>
                           <div className="flex flex-col gap-0.5">
                             <span className="text-[11px] text-zinc-500 font-mono">ID: {node.id}</span>
