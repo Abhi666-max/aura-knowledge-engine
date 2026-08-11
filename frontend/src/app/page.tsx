@@ -82,7 +82,7 @@ export default function Home() {
       const res = await fetch("/api/reset", { method: "POST" });
       if (res.ok) {
         setGraphData({ nodes: [], links: [] });
-        setMessages(prev => [...prev, { role: "system", content: "System: Knowledge Graph has been safely wiped. Backup created." }]);
+        setMessages([{ role: "agent", content: "Memory safely wiped. Aura is ready to build a new Knowledge Graph." }]);
       }
     } catch (e) {
       console.error(e);
