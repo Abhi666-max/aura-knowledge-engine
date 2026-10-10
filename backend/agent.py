@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 from dotenv import load_dotenv
 load_dotenv()
 from typing import List, TypedDict
@@ -18,29 +19,39 @@ class AgentState(TypedDict):
     response: str
 
 
-# All known working Groq models - tries each one until one works
-GROQ_MODELS = [
-    "gemma2-9b-it",
-    "mixtral-8x7b-32768",
-    "llama-3.1-8b-instant",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
-]
-
-
-def get_working_llm():
-    """Returns first available Groq LLM by testing each model."""
+def get_available_groq_models():
+    """Fetch current list of available Groq chat models via their API."""
     api_key = os.getenv("GROQ_API_KEY")
-    for model in GROQ_MODELS:
-        try:
-            llm = ChatGroq(temperature=0, model_name=model, api_key=api_key)
-            # Light probe to confirm model is accessible
-            llm.invoke([HumanMessage(content="hi")])
-            print(f"[Aura] Using Groq model: {model}")
-            return llm, model
-        except Exception as e:
-            print(f"[Aura] Model {model} unavailable: {e}")
-    return None, None
+    try:
+        resp = requests.get(
+            "https://api.groq.com/openai/v1/models",
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=10,
+        )
+        data = resp.json()
+        # Filter to text/chat models only (not whisper/audio)
+        chat_models = [
+            m["id"] for m in data.get("data", [])
+            if "whisper" not in m["id"].lower()
+            and "tts" not in m["id"].lower()
+            and "vision" not in m["id"].lower()
+        ]
+        # Prefer larger, more capable models first
+        chat_models.sort(key=lambda x: (
+            "70b" not in x,
+            "8b" not in x,
+            "versatile" not in x,
+            x
+        ))
+        print(f"[Aura] Available Groq models: {chat_models}")
+        return chat_models
+    except Exception as e:
+        print(f"[Aura] Failed to fetch Groq model list: {e}")
+        return []
+
+
+# Discover available models at startup
+AVAILABLE_GROQ_MODELS = get_available_groq_models()
 
 
 class NodeModel(BaseModel):
@@ -101,8 +112,12 @@ Output ONLY valid JSON. No markdown formatting, no code blocks."""
     )
 
     api_key = os.getenv("GROQ_API_KEY")
+    models_to_try = AVAILABLE_GROQ_MODELS if AVAILABLE_GROQ_MODELS else [
+        "gemma2-9b-it",
+        "mixtral-8x7b-32768",
+    ]
 
-    for model in GROQ_MODELS:
+    for model in models_to_try:
         try:
             llm = ChatGroq(temperature=0, model_name=model, api_key=api_key)
             structured_llm = llm.with_structured_output(GraphExtraction)
