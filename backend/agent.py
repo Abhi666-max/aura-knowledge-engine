@@ -11,13 +11,14 @@ from pydantic import BaseModel, Field
 
 class AgentState(TypedDict):
     input_text: str
+    graph_context: str
     nodes: list
     edges: list
     response: str
 
 
 llm = ChatGroq(
-    temperature=0, model_name="llama-3.1-8b-instant", api_key=os.getenv("GROQ_API_KEY")
+    temperature=0, model_name="llama-3.1-70b-versatile", api_key=os.getenv("GROQ_API_KEY")
 )
 
 
@@ -50,13 +51,27 @@ class GraphExtraction(BaseModel):
 def extract_knowledge(state: AgentState):
     """Extracts entities and relationships from the text."""
     input_text = state["input_text"]
+    graph_context = state.get("graph_context", "")
 
     prompt = SystemMessage(
-        content="""You are Aura, an advanced AI Assistant and Knowledge Graph Extractor.
-First, answer the user's question fully and conversationally in the "response" field.
-Then, extract the relevant entities ("nodes") and their relationships ("edges").
+        content=f"""You are Aura, an advanced AI Assistant and Knowledge Graph Extractor.
+First, answer the user's question fully and conversationally in the "response" field. 
+Use the provided Knowledge Graph Context below if relevant to answer the user's question.
+
+CRITICAL INSTRUCTION FOR CONTEXT:
+The Knowledge Graph Context contains facts extracted from previous interactions. Assume that any nodes representing a person interacting with the system (like "Abhi", "user") refer to the current user you are talking to.
+If the context says "Abhi --(presenting)--> Project", and the user asks "who am I?", you MUST confidently infer the user is Abhi and answer accordingly.
+
+Knowledge Graph Context (Previously extracted facts):
+{graph_context}
+
+Then, extract the relevant entities ("nodes") and their relationships ("edges") from the user's NEW input.
 Make IDs lowercase with underscores.
 Do not extract relationships unless both source and target entities are clearly identifiable.
+
+CRITICAL INSTRUCTION FOR EXTRACTION:
+- Do NOT generalize terms. If the user says "Cloud Computing mini project", extract exactly "Cloud Computing mini project", DO NOT simplify it to "Project".
+- Keep proper nouns, technical terms, and specific names exactly as the user typed them.
 
 You MUST return exactly ONE JSON object with three keys: "response", "nodes", and "edges".
 "nodes" must be an array of objects with keys: "id", "label", "group".

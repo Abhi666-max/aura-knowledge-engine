@@ -12,7 +12,16 @@ from database import Base, engine, get_db
 from models import Edge, Node
 import hashlib
 
-app = FastAPI(title="Nexus Knowledge Graph API", version="1.0.0")
+app = FastAPI(title="Aura Knowledge Engine API", version="1.0.0")
+
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "message": "Welcome to Aura Knowledge Engine API. The intelligence engine is running.",
+        "frontend_url": "https://aura-knowledge-engine.vercel.app",
+        "api_documentation": "/docs"
+    }
 
 # Vector DB embedding mock generator (to save EC2 disk space)
 def generate_mock_embedding(text: str, dim: int = 384):
@@ -31,6 +40,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     async with engine.begin() as conn:
+        from sqlalchemy import text
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         # Idempotent table creation (preserves existing valid data)
         await conn.run_sync(Base.metadata.create_all)
 
@@ -41,8 +52,22 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db)):
+    # Fetch existing graph context for the LLM
+    nodes_result = await db.execute(select(Node))
+    edges_result = await db.execute(select(Edge))
+    existing_nodes = {n.id: n.label for n in nodes_result.scalars().all()}
+    existing_edges = edges_result.scalars().all()
+    
+    context_lines = []
+    for e in existing_edges:
+        source_label = existing_nodes.get(e.source, e.source)
+        target_label = existing_nodes.get(e.target, e.target)
+        context_lines.append(f"{source_label} --({e.label})--> {target_label}")
+    
+    graph_context = "\n".join(context_lines) if context_lines else "No previous context."
+
     # Run the agent synchronously for immediate UI feedback in demo
-    inputs = {"input_text": request.text}
+    inputs = {"input_text": request.text, "graph_context": graph_context}
     final_state = agent_app.invoke(inputs)
 
     new_nodes = final_state.get("nodes", [])
@@ -132,13 +157,28 @@ async def get_graph(db: AsyncSession = Depends(get_db)):
     return {"nodes": nodes, "links": edges}
 
 
+@app.delete("/api/node/{node_id}")
+async def delete_node(node_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        from sqlalchemy import text
+        # Delete edges connected to this node first (foreign keys or logical connections)
+        await db.execute(text("DELETE FROM edges WHERE source = :id OR target = :id"), {"id": node_id})
+        # Delete the node itself
+        await db.execute(text("DELETE FROM nodes WHERE id = :id"), {"id": node_id})
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"status": "success", "message": f"Node {node_id} deleted"}
+
 @app.post("/api/reset")
 async def reset_graph(db: AsyncSession = Depends(get_db)):
     try:
         from sqlalchemy import text
 
-        # Truncate edges first, then nodes to wipe data instantly without slow row-by-row deletion
-        await db.execute(text("TRUNCATE TABLE edges, nodes CASCADE;"))
+        # Use DELETE instead of TRUNCATE for instant execution on Serverless CockroachDB
+        await db.execute(text("DELETE FROM edges"))
+        await db.execute(text("DELETE FROM nodes"))
         await db.commit()
     except Exception as e:
         await db.rollback()
