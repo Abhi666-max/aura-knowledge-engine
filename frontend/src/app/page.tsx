@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   BrainCircuit, Database, Server, Cpu,
   Globe, Waypoints, ArrowRight, ArrowUpRight,
@@ -13,11 +13,11 @@ import {
 const TICKER_TEXT = "AURA KNOWLEDGE ENGINE ● EXTRACT ● CONNECT ● VISUALIZE ● LLAMA 3.1 ● COCKROACHDB ● LANGGRAPH ● FASTAPI ● NEXT.JS ● ";
 
 /* ─── Mechanical snap-in ──────────────────────────────────── */
-const snapIn = {
+const snapIn: Variants = {
   hidden:  { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.15, ease: "linear" } },
 };
-const stagger = {
+const stagger: Variants = {
   hidden:  { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
 };
