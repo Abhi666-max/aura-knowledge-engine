@@ -1,31 +1,32 @@
 <div align="center">
-  <img src="frontend/public/logo_v4.png" alt="Aura Knowledge Engine Logo" width="200" />
+  <img src="frontend/public/logo_swiss.jpg" alt="Aura Knowledge Engine Logo" width="120" />
 
   # Aura Knowledge Engine
   
   **An autonomous AI agent that builds interactive Knowledge Graphs from unstructured text.**
 
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-  [![CockroachDB](https://img.shields.io/badge/CockroachDB-Serverless-6933FF?logo=cockroachlabs)](https://www.cockroachlabs.com/)
-  [![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazonaws)](https://aws.amazon.com/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](https://opensource.org/licenses/MIT)
+  [![CockroachDB](https://img.shields.io/badge/CockroachDB-Serverless-black?logo=cockroachlabs)](https://www.cockroachlabs.com/)
+  [![AWS](https://img.shields.io/badge/AWS-EC2-black?logo=amazonaws)](https://aws.amazon.com/)
   [![Next.js](https://img.shields.io/badge/Next.js-15.0-black?logo=next.js)](https://nextjs.org/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-black?logo=fastapi)](https://fastapi.tiangolo.com/)
 
 </div>
 
 ---
 
 ## Overview
-Aura Knowledge Engine is a full-stack, distributed cloud application that transforms raw, unstructured text into visually interactive 3D Knowledge Graphs. By leveraging state-of-the-art Large Language Models (LLMs), Aura dynamically extracts entities and relationships, storing them securely in a highly available CockroachDB Serverless cluster.
+Aura Knowledge Engine is a full-stack, distributed cloud application that transforms raw, unstructured text into visually interactive 3D Knowledge Graphs. By leveraging state-of-the-art Large Language Models (Llama 3.1 via Groq), Aura dynamically extracts entities and relationships, storing them securely in a highly available CockroachDB Serverless cluster.
 
-This project demonstrates a robust modern Cloud Computing Architecture, seamlessly distributing workloads across Edge Networks (Vercel) and Cloud Virtual Machines (AWS EC2).
+The application features a strict **Swiss Brutalist** design system, utilizing absolute geometry, heavy grid lines, and functional typography (`Space Grotesk`, `Bebas Neue`, `DM Mono`) with minimal color accents for a highly precise and raw technical aesthetic.
 
-## Key Features
-- **AI-Powered Graph Extraction**: Powered by `llama-3.1-8b-instant` via LangChain to extract entities (Nodes) and relationships (Edges) with high precision.
-- **CockroachDB Persistent Storage**: Utilizing CockroachDB's distributed SQL for ultra-low latency reads/writes, ensuring data integrity and horizontal scalability.
-- **Vector Embeddings (pgvector)**: Storing semantic vector embeddings for nodes in CockroachDB to enable advanced AI-driven similarity search.
-- **AWS EC2 Deployment**: The Python/FastAPI backend is securely deployed on an Amazon Web Services (AWS) EC2 instance, utilizing REST APIs to serve graph data.
-- **Interactive 3D Visualization**: A highly responsive Next.js frontend featuring `react-force-graph-3d` for dynamic, physics-based graph rendering in the browser.
+## The Mechanism
+1. **User Input → Next.js Frontend:** The user types unstructured text into the chat interface built with Next.js 15 (App Router). 
+2. **Next.js Proxy → FastAPI Backend:** The Next.js API route forwards the request to the FastAPI backend server hosted on AWS EC2.
+3. **FastAPI → LangGraph Agent:** FastAPI passes the text to a LangGraph-based agentic pipeline which orchestrates the state and tool calls.
+4. **LangGraph → Llama 3.1 (Groq):** The agent sends the user's text to Llama 3.1 hosted on Groq's ultra-fast inference API to extract structured entity and relationship JSON.
+5. **Extracted Data → CockroachDB:** Nodes and edges are inserted into a distributed CockroachDB cloud database with duplicate-prevention constraints.
+6. **Response → Frontend → 3D Graph:** The frontend fetches the updated graph and renders it via `react-force-graph-3d` as an interactive, physics-simulated 3D network.
 
 ## Architecture & File Structure
 
@@ -38,15 +39,16 @@ aura-knowledge-engine/
 │   ├── main.py                    # FastAPI application routes
 │   └── requirements.txt           # Python dependencies
 ├── frontend/                      # Next.js React UI (Hosted on Vercel)
-│   ├── public/                    # Assets and Logos
+│   ├── public/                    # Assets and Logos (logo_swiss.jpg)
 │   ├── src/app/
 │   │   ├── api/                   # Next.js Serverless Proxy Routes
 │   │   ├── components/
 │   │   │   └── Graph.tsx          # 3D Force Graph Component
-│   │   ├── page.tsx               # Main Dashboard UI
-│   │   └── globals.css            # Tailwind & Custom CSS
+│   │   ├── engine/                # Engine Chat & Visualization Interface
+│   │   ├── page.tsx               # Swiss Brutalist Landing Page
+│   │   └── globals.css            # Custom Swiss CSS Variables & Tailwind
 │   ├── package.json               # Node.js dependencies
-│   └── tailwind.config.ts         # Tailwind CSS configuration
+│   └── tailwind.config.ts         # Tailwind CSS v4 configuration
 ├── .gitignore
 └── README.md                      # Project Documentation
 ```
@@ -89,7 +91,3 @@ Open `http://localhost:3000` to view the application. The frontend automatically
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-### Credits
-Architected and Developed by **Abhijeet Kangane (@Abhi666-max)**.
