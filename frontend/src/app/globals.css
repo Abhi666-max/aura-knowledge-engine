@@ -1,54 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-saas-bg: #09090b; /* Zinc 950 */
-  --color-saas-surface: #18181b; /* Zinc 900 */
-  --color-saas-border: rgba(255, 255, 255, 0.08);
-  --color-saas-text-primary: #fafafa; /* Zinc 50 */
-  --color-saas-text-secondary: #a1a1aa; /* Zinc 400 */
-  --color-saas-accent: #ffffff;
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
+html { scroll-behavior: smooth; background: #FFFFFF; }
 
-body {
-  background-color: var(--color-saas-bg);
-  color: var(--color-saas-text-primary);
-  overflow-x: hidden;
-  /* Very subtle ultra-premium dot pattern */
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
+/* ============================================================
+   SWISS GRID BASE
+   ============================================================ */
+.swiss-body {
+  background-color: #F7F7F5;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 2v7H4v2h7v7h2v-7h7v-2h-7V2h-2z" fill="%23FF0000"/></svg>') 12 12, crosshair;
 }
 
-/* Premium Surface Panels */
-.saas-panel {
-  background-color: var(--color-saas-surface);
-  border: 1px solid var(--color-saas-border);
-  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+/* Ensure links and buttons have pointer cursor */
+a, button, input[type="submit"], input[type="button"], .cursor-pointer {
+  cursor: pointer;
 }
 
-/* Clean Scrollbar for terminal/chat */
-.saas-scroll::-webkit-scrollbar {
-  width: 4px;
+/* Visible grid overlay */
+.swiss-grid-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
-.saas-scroll::-webkit-scrollbar-track {
+
+/* Red column accent lines */
+.swiss-grid-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(25% - 0.5px);
+  width: 1px;
+  background: rgba(220, 0, 0, 0.08);
+}
+
+.swiss-grid-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(75% - 0.5px);
+  width: 1px;
+  background: rgba(220, 0, 0, 0.08);
+}
+
+/* ============================================================
+   RED SWEEP ANIMATION
+   ============================================================ */
+.red-sweep {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: #FF0000;
+  z-index: 100;
+  animation: sweep-across 1.2s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+  animation-delay: 0.2s;
+  pointer-events: none;
+}
+
+@keyframes sweep-across {
+  0%   { left: -4px; opacity: 1; }
+  80%  { left: calc(100% + 4px); opacity: 1; }
+  100% { left: calc(100% + 4px); opacity: 0; }
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.display-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.02em;
+  line-height: 0.9;
+}
+
+.swiss-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+/* ============================================================
+   NAVBAR — thick border, no blur
+   ============================================================ */
+.swiss-nav {
+  background: #FFFFFF;
+  border-bottom: 3px solid #0A0A0A;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+}
+
+/* ============================================================
+   CARDS — Hard rectangular, no radius
+   ============================================================ */
+.swiss-card {
+  background: #FFFFFF;
+  border: 2px solid #0A0A0A;
+  border-radius: 0;
+  transition: box-shadow 0.15s linear, transform 0.15s linear;
+  position: relative;
+  overflow: hidden;
+}
+
+.swiss-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: #FF0000;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s linear;
+}
+
+.swiss-card:hover::before { transform: scaleX(1); }
+.swiss-card:hover {
+  box-shadow: 6px 6px 0 #0A0A0A;
+  transform: translate(-3px, -3px);
+}
+
+/* ============================================================
+   ARCHITECTURE TABLE CELLS
+   ============================================================ */
+.swiss-cell {
+  border: 1px solid #0A0A0A;
+  background: #FFFFFF;
+  transition: background 0.12s linear;
+}
+
+.swiss-cell:hover { background: #FF0000; color: #FFFFFF; }
+.swiss-cell:hover * { color: #FFFFFF !important; }
+
+/* ============================================================
+   BUTTONS — Hard, geometric
+   ============================================================ */
+.swiss-btn-primary {
+  background: #0A0A0A;
+  color: #FFFFFF;
+  border: 2px solid #0A0A0A;
+  border-radius: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: all 0.12s linear;
+}
+
+.swiss-btn-primary:hover {
+  background: #FF0000;
+  border-color: #FF0000;
+  box-shadow: 4px 4px 0 #0A0A0A;
+  transform: translate(-2px, -2px);
+}
+
+.swiss-btn-secondary {
   background: transparent;
-}
-.saas-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-.saas-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Ultra-subtle command input shadow */
-.saas-input-shadow:focus-within {
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.5);
+  color: #0A0A0A;
+  border: 2px solid #0A0A0A;
+  border-radius: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: all 0.12s linear;
 }
 
-/* Clean Minimal Message Box */
-.saas-message {
-  border: 1px solid var(--color-saas-border);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+.swiss-btn-secondary:hover {
+  background: #0A0A0A;
+  color: #FFFFFF;
+  box-shadow: 4px 4px 0 #FF0000;
+  transform: translate(-2px, -2px);
 }
+
+/* ============================================================
+   NUMBER ACCENT (big faint background numbers)
+   ============================================================ */
+.bg-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(100px, 18vw, 200px);
+  color: rgba(0,0,0,0.04);
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   HORIZONTAL RULE
+   ============================================================ */
+.swiss-rule { border: none; border-top: 2px solid #0A0A0A; }
+.swiss-rule-red { border: none; border-top: 3px solid #FF0000; }
+.swiss-rule-thin { border: none; border-top: 1px solid #ddd; }
+
+/* ============================================================
+   TICKER BAR
+   ============================================================ */
+.ticker-bar {
+  background: #FF0000;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-inner {
+  display: inline-flex;
+  gap: 0;
+  animation: ticker-scroll 18s linear infinite;
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============================================================
+   ENGINE PAGE — Swiss Brutalist Light
+   ============================================================ */
+.saas-scroll::-webkit-scrollbar { width: 3px; }
+.saas-scroll::-webkit-scrollbar-track { background: transparent; }
+.saas-scroll::-webkit-scrollbar-thumb { background: #0A0A0A; border-radius: 0; }
+.saas-scroll::-webkit-scrollbar-thumb:hover { background: #FF0000; }
+.saas-input-shadow:focus-within { box-shadow: 0 0 0 2px #FF0000; }
+.saas-message { border: none; }
+
