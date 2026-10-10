@@ -17,9 +17,22 @@ class AgentState(TypedDict):
     response: str
 
 
-llm = ChatGroq(
-    temperature=0, model_name="llama3-8b-8192", api_key=os.getenv("GROQ_API_KEY")
-)
+from langchain_core.language_models.chat_models import BaseChatModel
+
+# Create a robust fallback chain of models to handle Groq deprecations automatically
+models_to_try = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "llama3-70b-8192",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it"
+]
+
+llms = [
+    ChatGroq(temperature=0, model_name=m, api_key=os.getenv("GROQ_API_KEY"))
+    for m in models_to_try
+]
+llm = llms[0].with_fallbacks(llms[1:])
 
 
 class NodeModel(BaseModel):
