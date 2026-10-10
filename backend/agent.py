@@ -1,4 +1,5 @@
 import os
+import json
 from dotenv import load_dotenv
 load_dotenv()
 from typing import List, TypedDict
@@ -17,22 +18,29 @@ class AgentState(TypedDict):
     response: str
 
 
-from langchain_core.language_models.chat_models import BaseChatModel
-
-# Create a robust fallback chain of models to handle Groq deprecations automatically
-models_to_try = [
-    "llama-3.3-70b-versatile",
+# All known working Groq models - tries each one until one works
+GROQ_MODELS = [
+    "gemma2-9b-it",
+    "mixtral-8x7b-32768",
     "llama-3.1-8b-instant",
     "llama3-70b-8192",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it"
+    "llama3-8b-8192",
 ]
 
-llms = [
-    ChatGroq(temperature=0, model_name=m, api_key=os.getenv("GROQ_API_KEY"))
-    for m in models_to_try
-]
-llm = llms[0].with_fallbacks(llms[1:])
+
+def get_working_llm():
+    """Returns first available Groq LLM by testing each model."""
+    api_key = os.getenv("GROQ_API_KEY")
+    for model in GROQ_MODELS:
+        try:
+            llm = ChatGroq(temperature=0, model_name=model, api_key=api_key)
+            # Light probe to confirm model is accessible
+            llm.invoke([HumanMessage(content="hi")])
+            print(f"[Aura] Using Groq model: {model}")
+            return llm, model
+        except Exception as e:
+            print(f"[Aura] Model {model} unavailable: {e}")
+    return None, None
 
 
 class NodeModel(BaseModel):
@@ -92,24 +100,29 @@ You MUST return exactly ONE JSON object with three keys: "response", "nodes", an
 Output ONLY valid JSON. No markdown formatting, no code blocks."""
     )
 
-    # Use native structured output instead of JSON mode
-    structured_llm = llm.with_structured_output(GraphExtraction)
+    api_key = os.getenv("GROQ_API_KEY")
 
-    try:
-        parsed = structured_llm.invoke([prompt, HumanMessage(content=input_text)])
-        
-        return {
-            "nodes": [n.dict() for n in parsed.nodes],
-            "edges": [e.dict() for e in parsed.edges],
-            "response": parsed.response,
-        }
-    except Exception as e:
-        print("Failed to parse AI output:", e)
-        return {
-            "nodes": [],
-            "edges": [],
-            "response": f"Error extracting graph data: {str(e)}",
-        }
+    for model in GROQ_MODELS:
+        try:
+            llm = ChatGroq(temperature=0, model_name=model, api_key=api_key)
+            structured_llm = llm.with_structured_output(GraphExtraction)
+            parsed = structured_llm.invoke([prompt, HumanMessage(content=input_text)])
+            print(f"[Aura] Successfully used model: {model}")
+            return {
+                "nodes": [n.dict() for n in parsed.nodes],
+                "edges": [e.dict() for e in parsed.edges],
+                "response": parsed.response,
+            }
+        except Exception as e:
+            print(f"[Aura] Model {model} failed: {e}")
+            continue
+
+    # All models failed
+    return {
+        "nodes": [],
+        "edges": [],
+        "response": "All AI models are currently unavailable. Please try again in a moment.",
+    }
 
 
 graph = StateGraph(AgentState)
