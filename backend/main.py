@@ -52,14 +52,15 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db)):
-    # Fetch existing graph context for the LLM
+    # Fetch existing graph context for the LLM (Optimized memory limit)
     nodes_result = await db.execute(select(Node))
-    edges_result = await db.execute(select(Edge))
+    # Limit to latest 50 edges to prevent exceeding LLM context window
+    edges_result = await db.execute(select(Edge).order_by(Edge.id.desc()).limit(50))
     existing_nodes = {n.id: n.label for n in nodes_result.scalars().all()}
     existing_edges = edges_result.scalars().all()
     
     context_lines = []
-    for e in existing_edges:
+    for e in reversed(existing_edges):  # Reverse to keep chronological order in context
         source_label = existing_nodes.get(e.source, e.source)
         target_label = existing_nodes.get(e.target, e.target)
         context_lines.append(f"{source_label} --({e.label})--> {target_label}")
@@ -122,9 +123,13 @@ async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db))
         # Flush nodes to the database so they are available for Edge foreign key checks
         await db.flush()
 
-        # Add edges
+        # Add edges without duplicating
+        existing_edge_tuples = {(e.source, e.target, e.label) for e in existing_edges}
         for e in new_edges:
-            db.add(Edge(source=e["source"], target=e["target"], label=e.get("label", "")))
+            edge_tuple = (e["source"], e["target"], e.get("label", ""))
+            if edge_tuple not in existing_edge_tuples:
+                db.add(Edge(source=e["source"], target=e["target"], label=e.get("label", "")))
+                existing_edge_tuples.add(edge_tuple)
 
         await db.commit()
     except Exception as e:

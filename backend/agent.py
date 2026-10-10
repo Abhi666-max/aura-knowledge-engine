@@ -18,7 +18,7 @@ class AgentState(TypedDict):
 
 
 llm = ChatGroq(
-    temperature=0, model_name="llama-3.1-70b-versatile", api_key=os.getenv("GROQ_API_KEY")
+    temperature=0, model_name="llama-3.1-8b-instant", api_key=os.getenv("GROQ_API_KEY")
 )
 
 
@@ -79,39 +79,17 @@ You MUST return exactly ONE JSON object with three keys: "response", "nodes", an
 Output ONLY valid JSON. No markdown formatting, no code blocks."""
     )
 
-    # Use JSON mode instead of structured tool calling to prevent 400 Bad Request errors
-    json_llm = llm.bind(response_format={"type": "json_object"})
+    # Use native structured output instead of JSON mode
+    structured_llm = llm.with_structured_output(GraphExtraction)
 
     try:
-        result = json_llm.invoke([prompt, HumanMessage(content=input_text)])
-
-        import json
-
-        try:
-            parsed = json.loads(result.content)
-        except json.JSONDecodeError:
-            # Fallback if it wrapped in markdown
-            content = result.content.strip()
-            if content.startswith("```json"):
-                content = content[7:]
-            if content.endswith("```"):
-                content = content[:-3]
-            parsed = json.loads(content.strip())
-
-        def parse_array(val):
-            if isinstance(val, str):
-                try:
-                    return json.loads(val)
-                except json.JSONDecodeError:
-                    return []
-            return val if isinstance(val, list) else []
-
-        nodes_out = parse_array(parsed.get("nodes"))
-        edges_out = parse_array(parsed.get("edges"))
-        resp_out = parsed.get("response", "Processing complete.")
-
-        return {"nodes": nodes_out, "edges": edges_out, "response": resp_out}
-
+        parsed = structured_llm.invoke([prompt, HumanMessage(content=input_text)])
+        
+        return {
+            "nodes": [n.dict() for n in parsed.nodes],
+            "edges": [e.dict() for e in parsed.edges],
+            "response": parsed.response,
+        }
     except Exception as e:
         print("Failed to parse AI output:", e)
         return {
